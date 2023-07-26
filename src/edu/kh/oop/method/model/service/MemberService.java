@@ -9,6 +9,7 @@ public class MemberService {
 	// 속성(필드) -> 캡슐화원칙에 의해 private으로 작성
 	private Scanner sc = new Scanner(System.in);
 	private Member memberInfo = null; // 가입한 회원의 정보를 저장한 변수
+	private Member loginMember = null; // 로그인한 회원의 정보를 저장할 변수
 	
 	// 기능(생성자+메서드)
 	
@@ -33,9 +34,18 @@ public class MemberService {
 			
 			switch(menuNum) {
 			case 1 : System.out.println(signup()); break;
-			case 2 : System.out.println("로그인"); break;
-			case 3 : System.out.println("회원정보 조회"); break;
-			case 4 : System.out.println("회원정보 수엊"); break;
+			case 2 : System.out.println(login()); break;
+			case 3 : System.out.println(selectMember()); break;
+			case 4 : 
+				int result = updateMember();
+				if(result == -1) {
+					System.out.println("로그인 후 이용해주세요.");
+				}else if(result ==0) {
+					System.out.println("회원정보 수정 실패(비밀번호 불일치");
+				}else {
+					System.out.println("회원정보가 수정되었습니다.");
+				}
+				; break;
 			case 0 : System.out.println("프로그램 종료..."); break;
 			default : System.out.println("잘못입력하셨습니다. 다시 입력해주세요");
 			}
@@ -63,7 +73,7 @@ public class MemberService {
 		String memberPw2 = sc.next();
 		
 		System.out.print("이름 : ");
-		String memeberName = sc.next();
+		String memberName = sc.next();
 		
 		System.out.print("나이 : ");
 		int memberAge = sc.nextInt();
@@ -75,22 +85,137 @@ public class MemberService {
 			
 			// 입력받은 정보를 이용해서 Member 객체 생성한 후
 			// 생성된 객체의 주소를 필드에 있는 memberInfo에 대입
-			
-			
-			
+			memberInfo = new Member(memberId, memberPw, memberName, memberAge);
 			
 			return "회원가입 성공!!";
+			/* 출력 구문 메소드를 호출한 곳에서 한번만 쓰고,
+			 * return을 이용해 전달할 값을 작성
+			 */
+			// return : 현재 메소드를 종료하고 호출한 곳으로 돌아감
+			// return 값; : 호출한 곳으로 돌아갈 때 값을 가지고 돌아감.
 			
 		}else { // 일치하지 않는 경우
 			
 			return "회원가입 실패!! (비밀번호 불일치)";
 			
 		}
+		
+			
 	}
 	
+	// 로그인 기능
+	public String login() {
+		
+		System.out.println("\n*********로그인*********");
+		
+		// 회원가입을 했는지 부터 확인
+		// == memberInfo가 객체를 참조하고 있는지 확인
+		
+		 if(memberInfo == null) { // 회원가입을 먼저 안한 경우
+			 // null : 아무것도 참조하고있지 않음
+			 return "회원 가입부터 진행해주세요.";
+		 }
+		 
+		 System.out.print("아이디 입력 : ");
+		 String memberId = sc.next();
+		 System.out.print("비밀번호 입력 : ");
+		 String memberPw = sc.next();
+		 
+		 // 회원가입 정보에서
+		 // 저장된 아이디, 비밀번호 == 입력된 아이디, 비밀번호가 같으면 "로그인 성공"
+		 // 일치하지 않으면 "아이디 또는 비밀번호가 일치하지 않습니다."
+		 
+		 // 아이디, 비밀번호가 모두 일치할 경우
+		 if(memberInfo.getMemberId().equals(memberId) && memberInfo.getMemberPw().equals(memberPw)) {
+			 // 입력받은 memberId와 
+			 // memberInfo필드에서 참조중인 멤버객체의 memberId가 같은지 확인
+			 loginMember = memberInfo;
+			 //참조형    =  Member 객체 주소 (얕은 복사)
+			 // 회원가입정보를 loginMember에 대입하여
+			 // 어떤 회원이 로그인했는지를 구분할 수 있게함.
+			 
+			 return loginMember.getMemberName() + "님 환영합니다!";
+			 
+		 }else {
+			 
+			 return "아이디 또는 비밀번호가 일치하지 않습니다.";
+		 }
+		
+		
+	}
 	
+	// 회원정보 조회 기능
+	public String selectMember() {
+		
+		System.out.println("\n******회원 정보 조회******");
+		
+		// 1) 로그인 여부 확인
+		// 로그인 안했을 때는 "로그인 후 이용해주세요" 반환
+		
+		// 2) 로그인이 되어있는 경우
+		// 회원정보를 출력할 문자열을 만들어서 반환
+		// 단, 비밀번호는 제외
+		
+		// 이름 : 홍길동
+		// 아이디 : user01
+		// 나이 : 25세
+		
+		if(loginMember == null) {
+			return "로그인 후 이용해주세요";
+		}
+		
+		String str = "이름 : " + loginMember.getMemberName();
+		str += "\n아이디 : " + loginMember.getMemberId();
+		str += "\n나이 : " + loginMember.getMemberAge() + "세";
+				
+		return str;
+		
+		
+		
+		
+		
+	}
 	
-	
+	// 회원정보 수정 기능
+	public int updateMember() {
+		
+		System.out.println("\n*********회원 정보 수정*********");
+		
+		// 1. 로그인 여부 판별
+		// 로그인되어있지 않으면 -1 반환
+		
+		// 2. 로그인이 되어있을 때
+		// 2-1) 수정할 회원정보 입력받기(이름,나이)
+		
+		// 2-2) 비밀번호를 입력받아서 로그인한 회원의 비밀번호와 일치하는지 확인
+		
+		// -> 비밀번호가 같을 경우
+		// 		로그인한 회원의 이름, 나이 정보를 입력받은 값으로 변경 후 1 반환
+		
+		// -> 비밀번호가 다를 경우 0 반환
+		
+		if(loginMember == null) {
+			return -1;
+		}
+		
+		System.out.print("수정할 이름을 입력해주세요 : ");
+		String memberName = sc.next();
+		System.out.print("수정할 나이를 입력해주세요 : ");
+		int memberAge = sc.nextInt();
+		System.out.print("비밀번호를 입력해주세요. : ");
+		String memberPw = sc.next();
+		
+		if(memberPw.equals(loginMember.getMemberPw())) {
+			
+			loginMember.setMemberName(memberName);
+			loginMember.setMemberAge(memberAge);
+			return 1;
+		}else {
+			return 0;
+		}
+		
+		
+	}
 	
 
 }
